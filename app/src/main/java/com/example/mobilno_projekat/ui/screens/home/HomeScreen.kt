@@ -37,5 +37,32 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(4.dp))
 
+        Button(
+            onClick = { onOpenScreen(AppScreen.TRANSACTIONS) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("View Transactions")
+        }
+
+        Button(
+            onClick = { onOpenScreen(AppScreen.ADD_TRANSACTION) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Add Transaction")
+        }
+
+        Button(
+            onClick = { onOpenScreen(AppScreen.CATEGORIES) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("View Categories")
+        }
+
+        Button(
+            onClick = { onOpenScreen(AppScreen.BUDGET) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("View Budget")
+        }
     }
 }

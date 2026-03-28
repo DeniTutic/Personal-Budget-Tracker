@@ -1,5 +1,9 @@
 package com.example.mobilno_projekat.ui.screens
 
 enum class AppScreen {
-    HOME
+    HOME,
+    TRANSACTIONS,
+    ADD_TRANSACTION,
+    CATEGORIES,
+    BUDGET
 }
