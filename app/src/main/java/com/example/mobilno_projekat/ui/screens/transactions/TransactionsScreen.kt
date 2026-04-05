@@ -8,6 +8,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.mobilno_projekat.model.Transaction
@@ -16,6 +19,39 @@ import com.example.mobilno_projekat.ui.screens.transactions.components.Transacti
 @Composable
 fun TransactionsScreen(
     transactions: List<Transaction>,
+    onBack: () -> Unit,
+    onClearAll: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val isEmpty by remember(transactions) {
+        derivedStateOf { transactions.isEmpty() }
+    }
+
+    val transactionCount by remember(transactions) {
+        derivedStateOf { transactions.size }
+    }
+
+    val totalExpense by remember(transactions) {
+        derivedStateOf { transactions.sumOf { it.amount } }
+    }
+
+    TransactionsScreenContent(
+        transactions = transactions,
+        isEmpty = isEmpty,
+        transactionCount = transactionCount,
+        totalExpense = totalExpense,
+        onBack = onBack,
+        onClearAll = onClearAll,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun TransactionsScreenContent(
+    transactions: List<Transaction>,
+    isEmpty: Boolean,
+    transactionCount: Int,
+    totalExpense: Double,
     onBack: () -> Unit,
     onClearAll: () -> Unit,
     modifier: Modifier = Modifier
@@ -29,7 +65,10 @@ fun TransactionsScreen(
             style = MaterialTheme.typography.headlineMedium
         )
 
-        if (transactions.isEmpty()) {
+        Text(text = "Total items: $transactionCount")
+        Text(text = "Total amount: $${"%.2f".format(totalExpense)}")
+
+        if (isEmpty) {
             Text(
                 text = "No transactions yet.",
                 style = MaterialTheme.typography.bodyLarge

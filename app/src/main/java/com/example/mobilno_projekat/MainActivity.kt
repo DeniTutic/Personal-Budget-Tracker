@@ -8,7 +8,10 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.mobilno_projekat.ui.screens.AppScreen
 import com.example.mobilno_projekat.ui.screens.add.AddTransactionScreen
@@ -31,7 +34,7 @@ class MainActivity : ComponentActivity() {
             MobilnoProjekatTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 
-                    var currentScreen by remember { mutableStateOf(AppScreen.HOME) }
+                    var currentScreen by rememberSaveable { mutableStateOf(AppScreen.HOME) }
 
                     when (currentScreen) {
                         AppScreen.HOME -> HomeScreen(
