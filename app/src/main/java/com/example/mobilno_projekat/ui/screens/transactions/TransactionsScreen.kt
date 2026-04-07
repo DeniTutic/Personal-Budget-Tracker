@@ -13,7 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.mobilno_projekat.model.Transaction
+import com.example.mobilno_projekat.ui.screens.transactions.model.Transaction
 import com.example.mobilno_projekat.ui.screens.transactions.components.TransactionItem
 
 @Composable

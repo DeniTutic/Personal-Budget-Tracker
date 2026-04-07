@@ -4,9 +4,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.mobilno_projekat.model.BudgetSummary
-import com.example.mobilno_projekat.model.Category
-import com.example.mobilno_projekat.model.Transaction
+import com.example.mobilno_projekat.ui.screens.budget.model.BudgetSummary
+import com.example.mobilno_projekat.ui.screens.categories.model.Category
+import com.example.mobilno_projekat.ui.screens.transactions.model.Transaction
 
 class MainViewModel : ViewModel() {
 

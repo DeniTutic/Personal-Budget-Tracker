@@ -13,7 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.mobilno_projekat.model.Category
+import com.example.mobilno_projekat.ui.screens.categories.model.Category
 import com.example.mobilno_projekat.ui.screens.categories.components.CategoryItem
 
 @Composable
