@@ -5,23 +5,25 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.example.mobilno_projekat.ui.screens.AppScreen
-import com.example.mobilno_projekat.ui.screens.add.AddTransactionScreen
-import com.example.mobilno_projekat.ui.screens.budget.BudgetScreen
-import com.example.mobilno_projekat.ui.screens.categories.CategoriesScreen
-import com.example.mobilno_projekat.ui.screens.home.HomeScreen
-import com.example.mobilno_projekat.ui.screens.transactions.TransactionsScreen
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.mobilno_projekat.navigation.NavGraph
+import com.example.mobilno_projekat.navigation.bottomNavItems
+import com.example.mobilno_projekat.navigation.getBottomNavRoutes
 import com.example.mobilno_projekat.ui.theme.MobilnoProjekatTheme
 import com.example.mobilno_projekat.viewmodel.MainViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
@@ -32,46 +34,53 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MobilnoProjekatTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                val navController = rememberNavController()
+                val currentBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = currentBackStackEntry?.destination?.route
+                val bottomNavRoutes = getBottomNavRoutes()
+                val showBottomBar = currentRoute in bottomNavRoutes
 
-                    var currentScreen by rememberSaveable { mutableStateOf(AppScreen.HOME) }
-
-                    when (currentScreen) {
-                        AppScreen.HOME -> HomeScreen(
-                            totalBalance = 620.0,
-                            onOpenScreen = { selectedScreen ->
-                                currentScreen = selectedScreen
-                            },
-                            modifier = Modifier.padding(innerPadding)
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = { Text("Personal Budget Tracker") },
+                            navigationIcon = {
+                                if (!showBottomBar) {
+                                    TextButton(onClick = { navController.navigateUp() }) {
+                                        Text("Back")
+                                    }
+                                }
+                            }
                         )
-
-                        AppScreen.TRANSACTIONS -> TransactionsScreen(
-                            transactions = viewModel.transactions,
-                            onBack = { currentScreen = AppScreen.HOME },
-                            onClearAll = { viewModel.clearTransactions() },
-                            modifier = Modifier.padding(innerPadding)
-                        )
-
-                        AppScreen.ADD_TRANSACTION -> AddTransactionScreen(
-                            onSave = { title, amount ->
-                                viewModel.addTransaction(title, amount)
-                            },
-                            onBack = { currentScreen = AppScreen.HOME },
-                            modifier = Modifier.padding(innerPadding)
-                        )
-
-                        AppScreen.CATEGORIES -> CategoriesScreen(
-                            categories = viewModel.categories,
-                            onBack = { currentScreen = AppScreen.HOME },
-                            modifier = Modifier.padding(innerPadding)
-                        )
-
-                        AppScreen.BUDGET -> BudgetScreen(
-                            summary = viewModel.budgetSummary,
-                            onBack = { currentScreen = AppScreen.HOME },
-                            modifier = Modifier.padding(innerPadding)
-                        )
+                    },
+                    bottomBar = {
+                        if (showBottomBar) {
+                            NavigationBar {
+                                bottomNavItems.forEach { item ->
+                                    NavigationBarItem(
+                                        selected = currentRoute == item.route,
+                                        onClick = {
+                                            navController.navigate(item.route) {
+                                                popUpTo(navController.graph.startDestinationId) {
+                                                    saveState = true
+                                                }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
+                                        },
+                                        icon = { Text(item.iconText) },
+                                        label = { Text(item.label) }
+                                    )
+                                }
+                            }
+                        }
                     }
+                ) { innerPadding ->
+                    NavGraph(
+                        navController = navController,
+                        viewModel = viewModel,
+                        modifier = Modifier.padding(innerPadding)
+                    )
                 }
             }
         }
