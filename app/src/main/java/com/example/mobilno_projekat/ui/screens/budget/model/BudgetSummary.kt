@@ -1,4 +1,4 @@
-package com.example.mobilno_projekat.model
+package com.example.mobilno_projekat.ui.screens.budget.model
 
 data class BudgetSummary(
     val monthlyBudget: Double,

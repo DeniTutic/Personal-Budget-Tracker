@@ -10,6 +10,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.mobilno_projekat.ui.screens.AppScreen
@@ -18,6 +21,27 @@ import com.example.mobilno_projekat.ui.screens.home.components.DashboardCard
 @Composable
 fun HomeScreen(
     totalBalance: Double,
+    onOpenScreen: (AppScreen) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val balanceLabel by remember(totalBalance) {
+        derivedStateOf {
+            if (totalBalance >= 0) "Available Balance" else "Negative Balance"
+        }
+    }
+
+    HomeScreenContent(
+        totalBalance = totalBalance,
+        balanceLabel = balanceLabel,
+        onOpenScreen = onOpenScreen,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun HomeScreenContent(
+    totalBalance: Double,
+    balanceLabel: String,
     onOpenScreen: (AppScreen) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -31,7 +55,7 @@ fun HomeScreen(
         )
 
         DashboardCard(
-            title = "Current Balance",
+            title = balanceLabel,
             value = "$${"%.2f".format(totalBalance)}"
         )
 
