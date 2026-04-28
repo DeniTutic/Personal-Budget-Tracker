@@ -13,11 +13,35 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.mobilno_projekat.ui.screens.budget.model.BudgetSummary
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mobilno_projekat.ui.screens.budget.components.BudgetInfoCard
+import com.example.mobilno_projekat.ui.screens.budget.model.BudgetSummary
 
 @Composable
 fun BudgetScreen(
+    viewModel: BudgetViewModel,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    when (val state = uiState) {
+        BudgetUiState.Loading -> {
+            Text("Loading...")
+        }
+
+        is BudgetUiState.Success -> {
+            BudgetScreenStateful(
+                summary = state.summary,
+                onBack = onBack,
+                modifier = modifier
+            )
+        }
+    }
+}
+
+@Composable
+private fun BudgetScreenStateful(
     summary: BudgetSummary,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
@@ -94,7 +118,7 @@ private fun BudgetScreenContent(
             onClick = onBack,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Back to Home")
+            Text("Back")
         }
     }
 }

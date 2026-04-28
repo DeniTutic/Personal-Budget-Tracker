@@ -12,7 +12,8 @@ import com.example.mobilno_projekat.ui.screens.categories.model.Category
 @Composable
 fun CategoryItem(
     category: Category,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) {
     Card(
         modifier = modifier

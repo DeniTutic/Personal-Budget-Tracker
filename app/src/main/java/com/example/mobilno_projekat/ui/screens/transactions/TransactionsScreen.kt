@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -28,13 +29,40 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.mobilno_projekat.ui.screens.transactions.model.Transaction
-import com.example.mobilno_projekat.ui.screens.transactions.components.TransactionItem
-import kotlinx.coroutines.launch
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mobilno_projekat.ui.screens.transactions.components.TransactionFilterChip
+import com.example.mobilno_projekat.ui.screens.transactions.components.TransactionItem
+import com.example.mobilno_projekat.ui.screens.transactions.model.Transaction
+import kotlinx.coroutines.launch
 
 @Composable
 fun TransactionsScreen(
+    viewModel: TransactionsViewModel,
+    onTransactionClick: (Transaction) -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    when (val state = uiState) {
+        TransactionsUiState.Loading -> {
+            Text("Loading...")
+        }
+
+        is TransactionsUiState.Success -> {
+            TransactionsScreenStateful(
+                transactions = state.transactions,
+                onTransactionClick = onTransactionClick,
+                onBack = onBack,
+                onClearAll = viewModel::clearTransactions,
+                modifier = modifier
+            )
+        }
+    }
+}
+
+@Composable
+private fun TransactionsScreenStateful(
     transactions: List<Transaction>,
     onTransactionClick: (Transaction) -> Unit,
     onBack: () -> Unit,
@@ -92,7 +120,7 @@ private fun TransactionsScreenContent(
     selectedFilter: String,
     filteredTransactions: List<Transaction>,
     totalAmount: Double,
-    listState: androidx.compose.foundation.lazy.LazyListState,
+    listState: LazyListState,
     showScrollToTop: Boolean,
     onSearchQueryChange: (String) -> Unit,
     onFilterSelected: (String) -> Unit,

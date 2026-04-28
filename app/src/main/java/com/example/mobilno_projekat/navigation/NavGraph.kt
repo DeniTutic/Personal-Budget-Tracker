@@ -2,6 +2,7 @@ package com.example.mobilno_projekat.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -9,18 +10,20 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.mobilno_projekat.ui.screens.AppScreen
 import com.example.mobilno_projekat.ui.screens.add.AddTransactionScreen
+import com.example.mobilno_projekat.ui.screens.add.AddTransactionViewModel
 import com.example.mobilno_projekat.ui.screens.budget.BudgetScreen
+import com.example.mobilno_projekat.ui.screens.budget.BudgetViewModel
 import com.example.mobilno_projekat.ui.screens.categories.CategoriesScreen
+import com.example.mobilno_projekat.ui.screens.categories.CategoriesViewModel
 import com.example.mobilno_projekat.ui.screens.details.TransactionDetailsScreen
 import com.example.mobilno_projekat.ui.screens.home.HomeScreen
+import com.example.mobilno_projekat.ui.screens.home.HomeViewModel
 import com.example.mobilno_projekat.ui.screens.transactions.TransactionsScreen
-import com.example.mobilno_projekat.viewmodel.MainViewModel
-import com.example.mobilno_projekat.ui.screens.transactions.model.Transaction
+import com.example.mobilno_projekat.ui.screens.transactions.TransactionsViewModel
 
 @Composable
 fun NavGraph(
     navController: NavHostController,
-    viewModel: MainViewModel,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -29,8 +32,10 @@ fun NavGraph(
         modifier = modifier
     ) {
         composable(Screen.Home.route) {
+            val viewModel: HomeViewModel = hiltViewModel()
+
             HomeScreen(
-                totalBalance = 620.0,
+                viewModel = viewModel,
                 onOpenScreen = { selectedScreen ->
                     when (selectedScreen) {
                         AppScreen.HOME -> navController.navigate(Screen.Home.route)
@@ -44,9 +49,11 @@ fun NavGraph(
         }
 
         composable(Screen.Transactions.route) {
+            val viewModel: TransactionsViewModel = hiltViewModel()
+
             TransactionsScreen(
-                transactions = viewModel.transactions,
-                onTransactionClick = { transaction: Transaction ->
+                viewModel = viewModel,
+                onTransactionClick = { transaction ->
                     navController.navigate(
                         Screen.TransactionDetails.createRoute(
                             transactionId = transaction.id,
@@ -54,31 +61,33 @@ fun NavGraph(
                         )
                     )
                 },
-                onBack = { navController.navigateUp() },
-                onClearAll = { viewModel.clearTransactions() }
+                onBack = { navController.navigateUp() }
             )
         }
 
         composable(Screen.AddTransaction.route) {
+            val viewModel: AddTransactionViewModel = hiltViewModel()
+
             AddTransactionScreen(
-                onSave = { title, amount ->
-                    viewModel.addTransaction(title, amount)
-                    navController.popBackStack()
-                },
+                viewModel = viewModel,
                 onBack = { navController.popBackStack() }
             )
         }
 
         composable(Screen.Categories.route) {
+            val viewModel: CategoriesViewModel = hiltViewModel()
+
             CategoriesScreen(
-                categories = viewModel.categories,
+                viewModel = viewModel,
                 onBack = { navController.navigateUp() }
             )
         }
 
         composable(Screen.Budget.route) {
+            val viewModel: BudgetViewModel = hiltViewModel()
+
             BudgetScreen(
-                summary = viewModel.budgetSummary,
+                viewModel = viewModel,
                 onBack = { navController.navigateUp() }
             )
         }

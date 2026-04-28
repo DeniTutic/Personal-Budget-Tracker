@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.NavigationBar
@@ -21,12 +20,11 @@ import com.example.mobilno_projekat.navigation.NavGraph
 import com.example.mobilno_projekat.navigation.bottomNavItems
 import com.example.mobilno_projekat.navigation.getBottomNavRoutes
 import com.example.mobilno_projekat.ui.theme.MobilnoProjekatTheme
-import com.example.mobilno_projekat.viewmodel.MainViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
-
-    private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,7 +76,6 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavGraph(
                         navController = navController,
-                        viewModel = viewModel,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
