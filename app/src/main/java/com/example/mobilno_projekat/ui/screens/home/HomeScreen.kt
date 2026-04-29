@@ -2,11 +2,16 @@ package com.example.mobilno_projekat.ui.screens.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +47,28 @@ fun HomeScreen(
 
     when (val state = uiState) {
         HomeUiState.Loading -> {
-            Text("Loading...")
+            Text("Loading home data...")
+        }
+
+        is HomeUiState.Error -> {
+            LazyColumn(
+                modifier = modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    Text(
+                        text = state.message,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+
+                item {
+                    Button(onClick = { viewModel.loadHome() }) {
+                        Text("Retry")
+                    }
+                }
+            }
         }
 
         is HomeUiState.Success -> {
@@ -120,13 +146,18 @@ private fun HomeScreenContent(
         }
 
         item {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(170.dp), // ✅ FIXED
+                userScrollEnabled = false
             ) {
-                items(
-                    items = shortcuts,
-                    key = { it.id }
-                ) { shortcut ->
+                items(shortcuts.size) { index ->
+                    val shortcut = shortcuts[index]
+
                     HomeShortcutCard(
                         title = shortcut.title,
                         onClick = { onOpenScreen(shortcut.target) }
@@ -142,15 +173,17 @@ private fun HomeScreenContent(
             )
         }
 
+
         item {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(
-                    items = categories,
-                    key = { it.id }
-                ) { category ->
-                    HomeCategoryChip(name = category.name)
+                categories.take(3).forEach { category ->
+                    HomeCategoryChip(
+                        name = category.name,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
