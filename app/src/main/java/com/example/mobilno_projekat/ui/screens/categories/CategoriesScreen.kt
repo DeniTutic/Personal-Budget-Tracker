@@ -33,7 +33,11 @@ fun CategoriesScreen(
 
     when (val state = uiState) {
         CategoriesUiState.Loading -> {
-            Text("Loading...")
+            Text("Loading categories...")
+        }
+
+        is CategoriesUiState.Error -> {
+            Text(state.message)
         }
 
         is CategoriesUiState.Success -> {

@@ -27,7 +27,11 @@ fun BudgetScreen(
 
     when (val state = uiState) {
         BudgetUiState.Loading -> {
-            Text("Loading...")
+            Text("Loading budget...")
+        }
+
+        is BudgetUiState.Error -> {
+            Text(state.message)
         }
 
         is BudgetUiState.Success -> {

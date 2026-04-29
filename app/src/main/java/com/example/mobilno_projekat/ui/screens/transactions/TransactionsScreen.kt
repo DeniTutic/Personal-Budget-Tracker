@@ -46,7 +46,11 @@ fun TransactionsScreen(
 
     when (val state = uiState) {
         TransactionsUiState.Loading -> {
-            Text("Loading...")
+            Text("Loading transactions...")
+        }
+
+        is TransactionsUiState.Error -> {
+            Text(state.message)
         }
 
         is TransactionsUiState.Success -> {
