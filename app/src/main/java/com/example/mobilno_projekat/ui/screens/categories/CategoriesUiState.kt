@@ -7,4 +7,7 @@ sealed interface CategoriesUiState {
     data class Success(
         val categories: List<Category>
     ) : CategoriesUiState
+    data class Error(
+        val message: String
+    ) : CategoriesUiState
 }

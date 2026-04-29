@@ -4,25 +4,37 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobilno_projekat.repository.BudgetRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class CategoriesViewModel @Inject constructor(
-    repository: BudgetRepository
+    private val repository: BudgetRepository
 ) : ViewModel() {
 
-    val uiState: StateFlow<CategoriesUiState> =
-        repository.categories
-            .map { categories ->
-                CategoriesUiState.Success(categories)
+    private val _uiState = MutableStateFlow<CategoriesUiState>(CategoriesUiState.Loading)
+    val uiState: StateFlow<CategoriesUiState> = _uiState.asStateFlow()
+
+    init {
+        loadCategories()
+    }
+
+    fun loadCategories() {
+        viewModelScope.launch {
+            _uiState.value = CategoriesUiState.Loading
+
+            try {
+                val categories = repository.loadCategories()
+                _uiState.value = CategoriesUiState.Success(categories)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalStateException) {
+                _uiState.value = CategoriesUiState.Error(e.message ?: "Failed to load categories.")
             }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = CategoriesUiState.Loading
-            )
+        }
+    }
 }

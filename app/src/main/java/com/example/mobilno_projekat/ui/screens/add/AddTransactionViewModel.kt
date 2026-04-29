@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobilno_projekat.repository.BudgetRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,9 +48,17 @@ class AddTransactionViewModel @Inject constructor(
                 }
 
                 else -> {
-                    repository.addTransaction(title, amount)
-                    _uiState.value = AddTransactionUiState.Success
-                    _navigationEvent.send(AddTransactionNavigationEvent.NavigateBack)
+                    try {
+                        repository.addTransaction(title, amount)
+                        _uiState.value = AddTransactionUiState.Success
+                        _navigationEvent.send(AddTransactionNavigationEvent.NavigateBack)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: IllegalArgumentException) {
+                        _uiState.value = AddTransactionUiState.Error(e.message ?: "Invalid transaction data.")
+                    } catch (e: IllegalStateException) {
+                        _uiState.value = AddTransactionUiState.Error(e.message ?: "Failed to save transaction.")
+                    }
                 }
             }
         }

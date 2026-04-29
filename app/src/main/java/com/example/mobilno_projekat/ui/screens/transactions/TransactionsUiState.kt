@@ -7,4 +7,7 @@ sealed interface TransactionsUiState {
     data class Success(
         val transactions: List<Transaction>
     ) : TransactionsUiState
+    data class Error(
+        val message: String
+    ) : TransactionsUiState
 }

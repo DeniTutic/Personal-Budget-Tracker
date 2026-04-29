@@ -4,10 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobilno_projekat.repository.BudgetRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -15,18 +16,38 @@ class TransactionsViewModel @Inject constructor(
     private val repository: BudgetRepository
 ) : ViewModel() {
 
-    val uiState: StateFlow<TransactionsUiState> =
-        repository.transactions
-            .map { transactions ->
-                TransactionsUiState.Success(transactions)
+    private val _uiState = MutableStateFlow<TransactionsUiState>(TransactionsUiState.Loading)
+    val uiState: StateFlow<TransactionsUiState> = _uiState.asStateFlow()
+
+    init {
+        loadTransactions()
+    }
+
+    fun loadTransactions() {
+        viewModelScope.launch {
+            _uiState.value = TransactionsUiState.Loading
+
+            try {
+                val transactions = repository.loadTransactions()
+                _uiState.value = TransactionsUiState.Success(transactions)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalStateException) {
+                _uiState.value = TransactionsUiState.Error(e.message ?: "Failed to load transactions.")
             }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = TransactionsUiState.Loading
-            )
+        }
+    }
 
     fun clearTransactions() {
-        repository.clearTransactions()
+        viewModelScope.launch {
+            try {
+                repository.clearTransactions()
+                loadTransactions()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalStateException) {
+                _uiState.value = TransactionsUiState.Error(e.message ?: "Failed to clear transactions.")
+            }
+        }
     }
 }

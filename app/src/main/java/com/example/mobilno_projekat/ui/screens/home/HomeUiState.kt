@@ -5,4 +5,7 @@ sealed interface HomeUiState {
     data class Success(
         val totalBalance: Double
     ) : HomeUiState
+    data class Error(
+        val message: String
+    ) : HomeUiState
 }

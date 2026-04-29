@@ -7,4 +7,7 @@ sealed interface BudgetUiState {
     data class Success(
         val summary: BudgetSummary
     ) : BudgetUiState
+    data class Error(
+        val message: String
+    ) : BudgetUiState
 }
