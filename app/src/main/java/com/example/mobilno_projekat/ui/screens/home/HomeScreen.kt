@@ -7,10 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -46,6 +44,7 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     when (val state = uiState) {
+        HomeUiState.Init,
         HomeUiState.Loading -> {
             Text("Loading home data...")
         }
@@ -152,7 +151,7 @@ private fun HomeScreenContent(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(170.dp), // ✅ FIXED
+                    .height(170.dp),
                 userScrollEnabled = false
             ) {
                 items(shortcuts.size) { index ->
@@ -173,7 +172,6 @@ private fun HomeScreenContent(
             )
         }
 
-
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -182,7 +180,8 @@ private fun HomeScreenContent(
                 categories.take(3).forEach { category ->
                     HomeCategoryChip(
                         name = category.name,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        onClick = { onOpenScreen(AppScreen.CATEGORIES) }
                     )
                 }
             }

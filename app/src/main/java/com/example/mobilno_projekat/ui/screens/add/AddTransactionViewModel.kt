@@ -2,7 +2,7 @@ package com.example.mobilno_projekat.ui.screens.add
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mobilno_projekat.repository.BudgetRepository
+import com.example.mobilno_projekat.model.repository.budget.BudgetRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
@@ -55,9 +55,9 @@ class AddTransactionViewModel @Inject constructor(
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: IllegalArgumentException) {
-                        _uiState.value = AddTransactionUiState.Error(e.message ?: "Invalid transaction data.")
-                    } catch (e: IllegalStateException) {
-                        _uiState.value = AddTransactionUiState.Error(e.message ?: "Failed to save transaction.")
+                        _uiState.value = AddTransactionUiState.Error(
+                            e.message ?: "Invalid transaction data."
+                        )
                     }
                 }
             }

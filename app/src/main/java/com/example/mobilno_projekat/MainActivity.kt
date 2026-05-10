@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.mobilno_projekat.navigation.NavGraph
+import com.example.mobilno_projekat.navigation.Screen
 import com.example.mobilno_projekat.navigation.bottomNavItems
 import com.example.mobilno_projekat.navigation.getBottomNavRoutes
 import com.example.mobilno_projekat.ui.theme.MobilnoProjekatTheme
@@ -58,12 +59,19 @@ class MainActivity : ComponentActivity() {
                                     NavigationBarItem(
                                         selected = currentRoute == item.route,
                                         onClick = {
-                                            navController.navigate(item.route) {
-                                                popUpTo(navController.graph.startDestinationId) {
-                                                    saveState = true
+                                            if (item.route == Screen.Home.route) {
+                                                navController.popBackStack(
+                                                    route = Screen.Home.route,
+                                                    inclusive = false
+                                                )
+                                            } else {
+                                                navController.navigate(item.route) {
+                                                    popUpTo(Screen.Home.route) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
                                                 }
-                                                launchSingleTop = true
-                                                restoreState = true
                                             }
                                         },
                                         icon = { Text(item.iconText) },

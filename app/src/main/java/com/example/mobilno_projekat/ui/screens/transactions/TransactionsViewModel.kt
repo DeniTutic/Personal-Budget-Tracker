@@ -2,7 +2,8 @@ package com.example.mobilno_projekat.ui.screens.transactions
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mobilno_projekat.repository.BudgetRepository
+import com.example.mobilno_projekat.model.repository.budget.BudgetRepository
+import com.example.mobilno_projekat.ui.screens.transactions.model.Transaction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +48,21 @@ class TransactionsViewModel @Inject constructor(
                 throw e
             } catch (e: IllegalStateException) {
                 _uiState.value = TransactionsUiState.Error(e.message ?: "Failed to clear transactions.")
+            }
+        }
+    }
+
+    fun deleteTransaction(transaction: Transaction) {
+        viewModelScope.launch {
+            try {
+                repository.deleteTransaction(transaction)
+                loadTransactions()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalArgumentException) {
+                _uiState.value = TransactionsUiState.Error(
+                    e.message ?: "Failed to delete transaction."
+                )
             }
         }
     }

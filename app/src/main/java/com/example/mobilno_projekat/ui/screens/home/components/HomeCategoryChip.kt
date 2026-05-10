@@ -14,10 +14,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun HomeCategoryChip(
     name: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     AssistChip(
-        onClick = { },
+        onClick = onClick,
         label = {
             Box(
                 modifier = Modifier

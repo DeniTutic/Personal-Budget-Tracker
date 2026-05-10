@@ -1,22 +1,12 @@
 package com.example.mobilno_projekat.ui.screens.transactions
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -24,9 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,20 +33,34 @@ fun TransactionsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     when (val state = uiState) {
+        TransactionsUiState.Init,
         TransactionsUiState.Loading -> {
             Text("Loading transactions...")
         }
 
         is TransactionsUiState.Error -> {
-            Text(state.message)
+            LazyColumn(
+                modifier = modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    Text(state.message)
+                }
+
+                item {
+                    Button(onClick = { viewModel.loadTransactions() }) {
+                        Text("Retry")
+                    }
+                }
+            }
         }
 
         is TransactionsUiState.Success -> {
-            TransactionsScreenStateful(
+            TransactionsScreenContent(
                 transactions = state.transactions,
                 onTransactionClick = onTransactionClick,
-                onBack = onBack,
-                onClearAll = viewModel::clearTransactions,
+                onClearTransactions = { viewModel.clearTransactions() },
                 modifier = modifier
             )
         }
@@ -66,171 +68,77 @@ fun TransactionsScreen(
 }
 
 @Composable
-private fun TransactionsScreenStateful(
+private fun TransactionsScreenContent(
     transactions: List<Transaction>,
     onTransactionClick: (Transaction) -> Unit,
-    onBack: () -> Unit,
-    onClearAll: () -> Unit,
+    onClearTransactions: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var searchQuery by rememberSaveable { mutableStateOf("") }
-    var selectedFilter by rememberSaveable { mutableStateOf("All") }
-
-    val listState = rememberLazyListState()
+    var selectedFilter by remember { mutableStateOf("All") }
     val coroutineScope = rememberCoroutineScope()
 
-    val filteredTransactions by remember(transactions, searchQuery, selectedFilter) {
+    val filters = remember {
+        listOf("All", "Income", "Expense")
+    }
+
+    val filteredTransactions by remember(transactions, selectedFilter) {
         derivedStateOf {
-            transactions.filter { transaction ->
-                val matchesQuery = transaction.title.contains(searchQuery, ignoreCase = true)
-                val matchesFilter = selectedFilter == "All" || transaction.type == selectedFilter
-                matchesQuery && matchesFilter
+            if (selectedFilter == "All") {
+                transactions
+            } else {
+                transactions.filter { it.type == selectedFilter }
             }
         }
     }
 
-    val totalAmount by remember(filteredTransactions) {
-        derivedStateOf { filteredTransactions.sumOf { it.amount } }
-    }
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Text("Transactions")
+        }
 
-    val showScrollToTop by remember {
-        derivedStateOf { listState.firstVisibleItemIndex > 0 }
-    }
-
-    TransactionsScreenContent(
-        searchQuery = searchQuery,
-        selectedFilter = selectedFilter,
-        filteredTransactions = filteredTransactions,
-        totalAmount = totalAmount,
-        listState = listState,
-        showScrollToTop = showScrollToTop,
-        onSearchQueryChange = { searchQuery = it },
-        onFilterSelected = { selectedFilter = it },
-        onTransactionClick = onTransactionClick,
-        onBack = onBack,
-        onClearAll = onClearAll,
-        onScrollToTop = {
-            coroutineScope.launch {
-                listState.animateScrollToItem(0)
+        item {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(filters) { filter ->
+                    TransactionFilterChip(
+                        label = filter,
+                        selected = selectedFilter == filter,
+                        onClick = { selectedFilter = filter }
+                    )
+                }
             }
-        },
-        modifier = modifier
-    )
-}
+        }
 
-@Composable
-private fun TransactionsScreenContent(
-    searchQuery: String,
-    selectedFilter: String,
-    filteredTransactions: List<Transaction>,
-    totalAmount: Double,
-    listState: LazyListState,
-    showScrollToTop: Boolean,
-    onSearchQueryChange: (String) -> Unit,
-    onFilterSelected: (String) -> Unit,
-    onTransactionClick: (Transaction) -> Unit,
-    onBack: () -> Unit,
-    onClearAll: () -> Unit,
-    onScrollToTop: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val filters = listOf("All", "Expense", "Income")
-
-    Box(modifier = modifier.fillMaxSize()) {
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item {
-                Text(
-                    text = "Transactions",
-                    style = MaterialTheme.typography.headlineMedium
-                )
-            }
-
-            item {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = onSearchQueryChange,
-                    label = { Text("Search transactions") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            item {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(filters, key = { it }) { filter ->
-                        TransactionFilterChip(
-                            label = filter,
-                            selected = selectedFilter == filter,
-                            onClick = { onFilterSelected(filter) }
-                        )
+        item {
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        onClearTransactions()
                     }
                 }
-            }
-
-            item {
-                Text(
-                    text = "Visible total: $${"%.2f".format(totalAmount)}",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-
-            if (filteredTransactions.isEmpty()) {
-                item {
-                    Text(
-                        text = "No transactions available.",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-            } else {
-                items(
-                    items = filteredTransactions,
-                    key = { it.id }
-                ) { transaction ->
-                    TransactionItem(
-                        transaction = transaction,
-                        onClick = { onTransactionClick(transaction) }
-                    )
-                }
-            }
-
-            item {
-                HorizontalDivider()
-            }
-
-            item {
-                Button(
-                    onClick = onClearAll,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Clear Transactions")
-                }
-            }
-
-            item {
-                Button(
-                    onClick = onBack,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Back")
-                }
+            ) {
+                Text("Clear Transactions")
             }
         }
 
-        AnimatedVisibility(
-            visible = showScrollToTop,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-        ) {
-            FloatingActionButton(onClick = onScrollToTop) {
-                Text("Top")
+        if (filteredTransactions.isEmpty()) {
+            item {
+                Text("No transactions available.")
+            }
+        } else {
+            items(
+                items = filteredTransactions,
+                key = { it.id }
+            ) { transaction ->
+                TransactionItem(
+                    transaction = transaction,
+                    onClick = { onTransactionClick(transaction) }
+                )
             }
         }
     }
