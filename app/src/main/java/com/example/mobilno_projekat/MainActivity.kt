@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.NavigationBar
@@ -18,15 +17,15 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.mobilno_projekat.navigation.NavGraph
+import com.example.mobilno_projekat.navigation.Screen
 import com.example.mobilno_projekat.navigation.bottomNavItems
 import com.example.mobilno_projekat.navigation.getBottomNavRoutes
 import com.example.mobilno_projekat.ui.theme.MobilnoProjekatTheme
-import com.example.mobilno_projekat.viewmodel.MainViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
-
-    private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,12 +59,19 @@ class MainActivity : ComponentActivity() {
                                     NavigationBarItem(
                                         selected = currentRoute == item.route,
                                         onClick = {
-                                            navController.navigate(item.route) {
-                                                popUpTo(navController.graph.startDestinationId) {
-                                                    saveState = true
+                                            if (item.route == Screen.Home.route) {
+                                                navController.popBackStack(
+                                                    route = Screen.Home.route,
+                                                    inclusive = false
+                                                )
+                                            } else {
+                                                navController.navigate(item.route) {
+                                                    popUpTo(Screen.Home.route) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
                                                 }
-                                                launchSingleTop = true
-                                                restoreState = true
                                             }
                                         },
                                         icon = { Text(item.iconText) },
@@ -78,7 +84,6 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavGraph(
                         navController = navController,
-                        viewModel = viewModel,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }

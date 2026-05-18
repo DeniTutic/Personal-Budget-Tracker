@@ -1,11 +1,14 @@
 package com.example.mobilno_projekat.ui.screens.home
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,78 +18,173 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mobilno_projekat.ui.screens.AppScreen
 import com.example.mobilno_projekat.ui.screens.home.components.DashboardCard
+import com.example.mobilno_projekat.ui.screens.home.components.HomeCategoryChip
+import com.example.mobilno_projekat.ui.screens.home.components.HomeShortcutCard
+
+private data class ShortcutItem(
+    val id: Int,
+    val title: String,
+    val target: AppScreen
+)
+
+private data class HomeCategoryItem(
+    val id: Int,
+    val name: String
+)
 
 @Composable
 fun HomeScreen(
-    totalBalance: Double,
+    viewModel: HomeViewModel,
     onOpenScreen: (AppScreen) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val balanceLabel by remember(totalBalance) {
-        derivedStateOf {
-            if (totalBalance >= 0) "Available Balance" else "Negative Balance"
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    when (val state = uiState) {
+        HomeUiState.Init,
+        HomeUiState.Loading -> {
+            Text("Loading home data...")
+        }
+
+        is HomeUiState.Error -> {
+            LazyColumn(
+                modifier = modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    Text(
+                        text = state.message,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+
+                item {
+                    Button(onClick = { viewModel.loadHome() }) {
+                        Text("Retry")
+                    }
+                }
+            }
+        }
+
+        is HomeUiState.Success -> {
+            val balanceLabel by remember(state.totalBalance) {
+                derivedStateOf {
+                    if (state.totalBalance >= 0) "Available Balance" else "Negative Balance"
+                }
+            }
+
+            val shortcuts = remember {
+                listOf(
+                    ShortcutItem(1, "Transactions", AppScreen.TRANSACTIONS),
+                    ShortcutItem(2, "Add", AppScreen.ADD_TRANSACTION),
+                    ShortcutItem(3, "Categories", AppScreen.CATEGORIES),
+                    ShortcutItem(4, "Budget", AppScreen.BUDGET)
+                )
+            }
+
+            val categories = remember {
+                listOf(
+                    HomeCategoryItem(1, "Food"),
+                    HomeCategoryItem(2, "Transport"),
+                    HomeCategoryItem(3, "Bills"),
+                    HomeCategoryItem(4, "Salary"),
+                    HomeCategoryItem(5, "Shopping")
+                )
+            }
+
+            HomeScreenContent(
+                totalBalance = state.totalBalance,
+                balanceLabel = balanceLabel,
+                shortcuts = shortcuts,
+                categories = categories,
+                onOpenScreen = onOpenScreen,
+                modifier = modifier
+            )
         }
     }
-
-    HomeScreenContent(
-        totalBalance = totalBalance,
-        balanceLabel = balanceLabel,
-        onOpenScreen = onOpenScreen,
-        modifier = modifier
-    )
 }
 
 @Composable
 private fun HomeScreenContent(
     totalBalance: Double,
     balanceLabel: String,
+    shortcuts: List<ShortcutItem>,
+    categories: List<HomeCategoryItem>,
     onOpenScreen: (AppScreen) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-        modifier = modifier.padding(16.dp)
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = "Personal Budget Tracker",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        DashboardCard(
-            title = balanceLabel,
-            value = "$${"%.2f".format(totalBalance)}"
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Button(
-            onClick = { onOpenScreen(AppScreen.TRANSACTIONS) },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("View Transactions")
+        item {
+            Text(
+                text = "Personal Budget Tracker",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
-        Button(
-            onClick = { onOpenScreen(AppScreen.ADD_TRANSACTION) },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Add Transaction")
+        item {
+            DashboardCard(
+                title = balanceLabel,
+                value = "$${"%.2f".format(totalBalance)}"
+            )
         }
 
-        Button(
-            onClick = { onOpenScreen(AppScreen.CATEGORIES) },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("View Categories")
+        item {
+            Text(
+                text = "Quick Access",
+                style = MaterialTheme.typography.titleMedium
+            )
         }
 
-        Button(
-            onClick = { onOpenScreen(AppScreen.BUDGET) },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("View Budget")
+        item {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(170.dp),
+                userScrollEnabled = false
+            ) {
+                items(shortcuts.size) { index ->
+                    val shortcut = shortcuts[index]
+
+                    HomeShortcutCard(
+                        title = shortcut.title,
+                        onClick = { onOpenScreen(shortcut.target) }
+                    )
+                }
+            }
+        }
+
+        item {
+            Text(
+                text = "Popular Categories",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                categories.take(3).forEach { category ->
+                    HomeCategoryChip(
+                        name = category.name,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onOpenScreen(AppScreen.CATEGORIES) }
+                    )
+                }
+            }
         }
     }
 }
