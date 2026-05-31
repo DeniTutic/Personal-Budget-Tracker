@@ -37,20 +37,28 @@ class MainActivity : ComponentActivity() {
                 val currentBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = currentBackStackEntry?.destination?.route
                 val bottomNavRoutes = getBottomNavRoutes()
+                val authRoutes = listOf(
+                    Screen.SignUp.route,
+                    Screen.Login.route
+                )
+
                 val showBottomBar = currentRoute in bottomNavRoutes
+                val showTopBar = currentRoute !in authRoutes
 
                 Scaffold(
                     topBar = {
-                        TopAppBar(
-                            title = { Text("Personal Budget Tracker") },
-                            navigationIcon = {
-                                if (!showBottomBar) {
-                                    TextButton(onClick = { navController.navigateUp() }) {
-                                        Text("Back")
+                        if (showTopBar) {
+                            TopAppBar(
+                                title = { Text("Personal Budget Tracker") },
+                                navigationIcon = {
+                                    if (!showBottomBar) {
+                                        TextButton(onClick = { navController.navigateUp() }) {
+                                            Text("Back")
+                                        }
                                     }
                                 }
-                            }
-                        )
+                            )
+                        }
                     },
                     bottomBar = {
                         if (showBottomBar) {

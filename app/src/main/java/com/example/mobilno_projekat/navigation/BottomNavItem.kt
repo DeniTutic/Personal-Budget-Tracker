@@ -12,3 +12,7 @@ val bottomNavItems = listOf(
     BottomNavItem("Categories", "C", Screen.Categories.route),
     BottomNavItem("Budget", "B", Screen.Budget.route)
 )
+
+fun getBottomNavRoutes(): List<String> {
+    return bottomNavItems.map { it.route }
+}
