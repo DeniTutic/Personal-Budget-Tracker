@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mobilno_projekat.model.datasource.network.dto.CreateHabitDto
 import com.example.mobilno_projekat.model.datasource.network.mapper.toHabitModel
+import com.example.mobilno_projekat.model.datasource.network.model.HabitModel
 import com.example.mobilno_projekat.model.repository.budget.BudgetRepository
 import com.example.mobilno_projekat.model.repository.habit.HabitRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,14 +25,40 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Init)
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    private val createdApiHabits = mutableListOf<HabitModel>()
+
+    private val sampleHabits = listOf(
+        CreateHabitDto(
+            title = "Track daily spending",
+            description = "Review expenses and update budget tracker.",
+            frequency = "daily",
+            completed = false,
+            userId = 1
+        ),
+        CreateHabitDto(
+            title = "Check weekly budget",
+            description = "Open the app and review spending for this week.",
+            frequency = "weekly",
+            completed = false,
+            userId = 1
+        ),
+        CreateHabitDto(
+            title = "Save for emergencies",
+            description = "Put aside a small amount for emergency savings.",
+            frequency = "monthly",
+            completed = false,
+            userId = 1
+        )
+    )
+
+    private var nextHabitIndex = 0
+
     init {
         observeHomeBalance()
-        loadApiHabits()
     }
 
     fun loadHome() {
         observeHomeBalance()
-        loadApiHabits()
     }
 
     private fun observeHomeBalance() {
@@ -44,11 +71,15 @@ class HomeViewModel @Inject constructor(
 
                     if (currentState is HomeUiState.Success) {
                         _uiState.value = currentState.copy(
-                            totalBalance = balance
+                            totalBalance = balance,
+                            apiHabits = createdApiHabits,
+                            apiMessage = currentState.apiMessage
                         )
                     } else {
                         _uiState.value = HomeUiState.Success(
-                            totalBalance = balance
+                            totalBalance = balance,
+                            apiHabits = emptyList(),
+                            apiMessage = "API ready. Press Create API to add data."
                         )
                     }
                 }
@@ -62,61 +93,28 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun loadApiHabits() {
-        viewModelScope.launch {
-            try {
-                val habits = habitRepository.getHabits().map { habit ->
-                    habit.toHabitModel()
-                }
-
-                val currentState = _uiState.value
-
-                if (currentState is HomeUiState.Success) {
-                    _uiState.value = currentState.copy(
-                        apiHabits = habits,
-                        apiMessage = "API connected successfully."
-                    )
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: IOException) {
-                val currentState = _uiState.value
-
-                if (currentState is HomeUiState.Success) {
-                    _uiState.value = currentState.copy(
-                        apiMessage = "API server is not running."
-                    )
-                }
-            } catch (e: IllegalStateException) {
-                val currentState = _uiState.value
-
-                if (currentState is HomeUiState.Success) {
-                    _uiState.value = currentState.copy(
-                        apiMessage = e.message ?: "Failed to load API data."
-                    )
-                }
-            }
-        }
-    }
-
     fun createApiHabit() {
         viewModelScope.launch {
             try {
-                habitRepository.createHabit(
-                    CreateHabitDto(
-                        title = "Track daily spending",
-                        description = "Review expenses and update budget tracker.",
-                        frequency = "daily",
-                        completed = false,
-                        userId = 1
-                    )
-                )
+                val habitToCreate = sampleHabits[nextHabitIndex % sampleHabits.size]
+                nextHabitIndex++
 
-                loadApiHabits()
+                val createdHabit = habitRepository.createHabit(habitToCreate).toHabitModel()
+                createdApiHabits.add(createdHabit)
+
+                val currentState = _uiState.value
+
+                if (currentState is HomeUiState.Success) {
+                    _uiState.value = currentState.copy(
+                        apiHabits = createdApiHabits.toList(),
+                        apiMessage = "API item created successfully."
+                    )
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: IOException) {
                 val currentState = _uiState.value
+
                 if (currentState is HomeUiState.Success) {
                     _uiState.value = currentState.copy(
                         apiMessage = "Could not create API item. Server unavailable."
@@ -124,6 +122,7 @@ class HomeViewModel @Inject constructor(
                 }
             } catch (e: IllegalStateException) {
                 val currentState = _uiState.value
+
                 if (currentState is HomeUiState.Success) {
                     _uiState.value = currentState.copy(
                         apiMessage = e.message ?: "Could not create API item."
