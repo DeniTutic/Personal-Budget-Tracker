@@ -134,7 +134,7 @@ private fun HomeScreenContent(
     ) {
         item {
             Text(
-                text = "Personal Budget Tracker",
+                text = "Hello, Deni!",
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.fillMaxWidth()
             )
