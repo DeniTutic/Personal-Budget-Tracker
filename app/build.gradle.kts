@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.internal.backend.common.serialization.metadata.DynamicTypeDeserializer.id
-import shadow.bundletool.com.android.tools.r8.internal.id
 
 plugins {
     alias(libs.plugins.android.application)

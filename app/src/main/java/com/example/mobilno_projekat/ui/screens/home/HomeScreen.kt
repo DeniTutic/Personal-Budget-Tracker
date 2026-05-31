@@ -106,7 +106,7 @@ fun HomeScreen(
                 apiHabits = state.apiHabits,
                 apiMessage = state.apiMessage,
                 onOpenScreen = onOpenScreen,
-                onRefreshApi = viewModel::loadHome,
+                onRefreshApi = viewModel::refreshApiHabits,
                 onCreateApiHabit = viewModel::createApiHabit,
                 modifier = modifier
             )

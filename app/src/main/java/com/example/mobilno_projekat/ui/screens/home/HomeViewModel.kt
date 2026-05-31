@@ -71,9 +71,7 @@ class HomeViewModel @Inject constructor(
 
                     if (currentState is HomeUiState.Success) {
                         _uiState.value = currentState.copy(
-                            totalBalance = balance,
-                            apiHabits = createdApiHabits,
-                            apiMessage = currentState.apiMessage
+                            totalBalance = balance
                         )
                     } else {
                         _uiState.value = HomeUiState.Success(
@@ -93,6 +91,50 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun refreshApiHabits() {
+        viewModelScope.launch {
+            try {
+                val habits = habitRepository.getHabits()
+                    .map { it.toHabitModel() }
+                    .takeLast(3)
+
+                createdApiHabits.clear()
+                createdApiHabits.addAll(habits)
+
+                val currentState = _uiState.value
+
+                if (currentState is HomeUiState.Success) {
+                    _uiState.value = currentState.copy(
+                        apiHabits = createdApiHabits.toList(),
+                        apiMessage = if (createdApiHabits.isEmpty()) {
+                            "API connected. No habits found."
+                        } else {
+                            "API refreshed successfully."
+                        }
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IOException) {
+                val currentState = _uiState.value
+
+                if (currentState is HomeUiState.Success) {
+                    _uiState.value = currentState.copy(
+                        apiMessage = "API server is not running."
+                    )
+                }
+            } catch (e: IllegalStateException) {
+                val currentState = _uiState.value
+
+                if (currentState is HomeUiState.Success) {
+                    _uiState.value = currentState.copy(
+                        apiMessage = e.message ?: "Failed to refresh API data."
+                    )
+                }
+            }
+        }
+    }
+
     fun createApiHabit() {
         viewModelScope.launch {
             try {
@@ -100,7 +142,12 @@ class HomeViewModel @Inject constructor(
                 nextHabitIndex++
 
                 val createdHabit = habitRepository.createHabit(habitToCreate).toHabitModel()
+
                 createdApiHabits.add(createdHabit)
+
+                while (createdApiHabits.size > 3) {
+                    createdApiHabits.removeAt(0)
+                }
 
                 val currentState = _uiState.value
 
