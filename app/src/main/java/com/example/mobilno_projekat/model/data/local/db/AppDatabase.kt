@@ -7,11 +7,13 @@ import com.example.mobilno_projekat.model.data.local.dao.BudgetDao
 import com.example.mobilno_projekat.model.data.local.dao.CategoryDao
 import com.example.mobilno_projekat.model.data.local.dao.SavingGoalDao
 import com.example.mobilno_projekat.model.data.local.dao.TransactionDao
+import com.example.mobilno_projekat.model.data.local.dao.UserDao
 import com.example.mobilno_projekat.model.data.local.entity.AccountEntity
 import com.example.mobilno_projekat.model.data.local.entity.BudgetEntity
 import com.example.mobilno_projekat.model.data.local.entity.CategoryEntity
 import com.example.mobilno_projekat.model.data.local.entity.SavingGoalEntity
 import com.example.mobilno_projekat.model.data.local.entity.TransactionEntity
+import com.example.mobilno_projekat.model.data.local.entity.UserEntity
 
 @Database(
     entities = [
@@ -19,9 +21,10 @@ import com.example.mobilno_projekat.model.data.local.entity.TransactionEntity
         CategoryEntity::class,
         BudgetEntity::class,
         AccountEntity::class,
-        SavingGoalEntity::class
+        SavingGoalEntity::class,
+        UserEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,4 +33,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun budgetDao(): BudgetDao
     abstract fun accountDao(): AccountDao
     abstract fun savingGoalDao(): SavingGoalDao
+    abstract fun userDao(): UserDao
 }
