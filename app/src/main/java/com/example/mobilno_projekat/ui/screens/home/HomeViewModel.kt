@@ -8,7 +8,6 @@ import com.example.mobilno_projekat.model.repository.budget.BudgetRepository
 import com.example.mobilno_projekat.model.repository.habit.HabitRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,45 +25,76 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
-        loadHome()
+        observeHomeBalance()
+        loadApiHabits()
     }
 
     fun loadHome() {
+        observeHomeBalance()
+        loadApiHabits()
+    }
+
+    private fun observeHomeBalance() {
         viewModelScope.launch {
             _uiState.value = HomeUiState.Loading
 
             try {
-                val balanceDeferred = async {
-                    budgetRepository.loadHomeBalance()
-                }
+                budgetRepository.observeHomeBalance().collect { balance ->
+                    val currentState = _uiState.value
 
-                val habitsResult = runCatching {
-                    habitRepository.getHabits().map { habit ->
-                        habit.toHabitModel()
+                    if (currentState is HomeUiState.Success) {
+                        _uiState.value = currentState.copy(
+                            totalBalance = balance
+                        )
+                    } else {
+                        _uiState.value = HomeUiState.Success(
+                            totalBalance = balance
+                        )
                     }
                 }
-
-                val apiHabits = habitsResult.getOrElse {
-                    emptyList()
-                }
-
-                val apiMessage = if (habitsResult.isSuccess) {
-                    "API connected successfully."
-                } else {
-                    "API server is not running."
-                }
-
-                _uiState.value = HomeUiState.Success(
-                    totalBalance = balanceDeferred.await(),
-                    apiHabits = apiHabits,
-                    apiMessage = apiMessage
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IllegalStateException) {
+                _uiState.value = HomeUiState.Error(
+                    e.message ?: "Failed to load home balance."
                 )
+            }
+        }
+    }
+
+    private fun loadApiHabits() {
+        viewModelScope.launch {
+            try {
+                val habits = habitRepository.getHabits().map { habit ->
+                    habit.toHabitModel()
+                }
+
+                val currentState = _uiState.value
+
+                if (currentState is HomeUiState.Success) {
+                    _uiState.value = currentState.copy(
+                        apiHabits = habits,
+                        apiMessage = "API connected successfully."
+                    )
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: IOException) {
-                _uiState.value = HomeUiState.Error("Network error. Check your connection.")
+                val currentState = _uiState.value
+
+                if (currentState is HomeUiState.Success) {
+                    _uiState.value = currentState.copy(
+                        apiMessage = "API server is not running."
+                    )
+                }
             } catch (e: IllegalStateException) {
-                _uiState.value = HomeUiState.Error(e.message ?: "Failed to load home data.")
+                val currentState = _uiState.value
+
+                if (currentState is HomeUiState.Success) {
+                    _uiState.value = currentState.copy(
+                        apiMessage = e.message ?: "Failed to load API data."
+                    )
+                }
             }
         }
     }
@@ -82,7 +112,7 @@ class HomeViewModel @Inject constructor(
                     )
                 )
 
-                loadHome()
+                loadApiHabits()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: IOException) {
