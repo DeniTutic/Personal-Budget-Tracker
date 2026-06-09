@@ -15,6 +15,10 @@ import com.example.mobilno_projekat.ui.screens.categories.model.Category
 import com.example.mobilno_projekat.ui.screens.transactions.model.Transaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -46,14 +50,31 @@ class BudgetRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun observeHomeBalance(): Flow<Double> {
+        return flow {
+            seedDatabaseIfNeeded()
+
+            emitAll(
+                transactionDao.observeAllTransactions().map { transactions ->
+                    val budget = budgetDao.getBudget()
+                    val expenses = transactions
+                        .filter { it.type == "Expense" }
+                        .sumOf { it.amount }
+
+                    (budget?.monthlyBudget ?: 0.0) - expenses
+                }
+            )
+        }
+    }
+
     override suspend fun loadHomeBalance(): Double = withContext(Dispatchers.IO) {
         delay(300)
         seedDatabaseIfNeeded()
 
-        val accounts = accountDao.getAllAccounts()
+        val budget = budgetDao.getBudget()
         val expenses = transactionDao.getTotalExpenses()
 
-        accounts.sumOf { it.balance } - expenses
+        (budget?.monthlyBudget ?: 0.0) - expenses
     }
 
     override suspend fun loadTransactions(): List<Transaction> = withContext(Dispatchers.IO) {

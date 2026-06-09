@@ -19,10 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mobilno_projekat.model.datasource.network.model.HabitModel
 import com.example.mobilno_projekat.ui.screens.AppScreen
 import com.example.mobilno_projekat.ui.screens.home.components.DashboardCard
 import com.example.mobilno_projekat.ui.screens.home.components.HomeCategoryChip
 import com.example.mobilno_projekat.ui.screens.home.components.HomeShortcutCard
+import com.example.mobilno_projekat.ui.screens.home.components.ApiHabitCard
 
 private data class ShortcutItem(
     val id: Int,
@@ -101,7 +103,11 @@ fun HomeScreen(
                 balanceLabel = balanceLabel,
                 shortcuts = shortcuts,
                 categories = categories,
+                apiHabits = state.apiHabits,
+                apiMessage = state.apiMessage,
                 onOpenScreen = onOpenScreen,
+                onRefreshApi = viewModel::refreshApiHabits,
+                onCreateApiHabit = viewModel::createApiHabit,
                 modifier = modifier
             )
         }
@@ -114,7 +120,11 @@ private fun HomeScreenContent(
     balanceLabel: String,
     shortcuts: List<ShortcutItem>,
     categories: List<HomeCategoryItem>,
+    apiHabits: List<HabitModel>,
+    apiMessage: String,
     onOpenScreen: (AppScreen) -> Unit,
+    onRefreshApi: () -> Unit,
+    onCreateApiHabit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -124,7 +134,7 @@ private fun HomeScreenContent(
     ) {
         item {
             Text(
-                text = "Personal Budget Tracker",
+                text = "Hello, Deni!",
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -180,9 +190,59 @@ private fun HomeScreenContent(
                 categories.take(3).forEach { category ->
                     HomeCategoryChip(
                         name = category.name,
-                        modifier = Modifier.weight(1f),
-                        onClick = { onOpenScreen(AppScreen.CATEGORIES) }
+                        onClick = { onOpenScreen(AppScreen.CATEGORIES) },
+                        modifier = Modifier.weight(1f)
                     )
+                }
+            }
+        }
+
+        item {
+            Text(
+                text = "API Budget Habits",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+
+        item {
+            Text(
+                text = apiMessage,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        if (apiHabits.isEmpty()) {
+            item {
+                Text(
+                    text = "No API habits loaded.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        } else {
+            items(apiHabits.size) { index ->
+                val habit = apiHabits[index]
+
+                ApiHabitCard(habit = habit)
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = onRefreshApi,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Refresh API")
+                }
+
+                Button(
+                    onClick = onCreateApiHabit,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Create API")
                 }
             }
         }

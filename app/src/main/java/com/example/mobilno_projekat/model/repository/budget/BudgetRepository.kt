@@ -3,8 +3,11 @@ package com.example.mobilno_projekat.model.repository.budget
 import com.example.mobilno_projekat.ui.screens.budget.model.BudgetSummary
 import com.example.mobilno_projekat.ui.screens.categories.model.Category
 import com.example.mobilno_projekat.ui.screens.transactions.model.Transaction
+import kotlinx.coroutines.flow.Flow
 
 interface BudgetRepository {
+
+    fun observeHomeBalance(): Flow<Double>
 
     suspend fun loadHomeBalance(): Double
 

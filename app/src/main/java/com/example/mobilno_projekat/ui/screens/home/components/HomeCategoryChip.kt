@@ -1,9 +1,12 @@
 package com.example.mobilno_projekat.ui.screens.home.components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,10 +31,16 @@ fun HomeCategoryChip(
             ) {
                 Text(
                     text = name,
+                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
             }
         },
-        modifier = modifier
+        colors = AssistChipDefaults.assistChipColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+        ),
+        border = null,
+        modifier = modifier.animateContentSize()
     )
 }

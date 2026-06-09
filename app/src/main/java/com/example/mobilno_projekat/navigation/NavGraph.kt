@@ -11,6 +11,10 @@ import androidx.navigation.navArgument
 import com.example.mobilno_projekat.ui.screens.AppScreen
 import com.example.mobilno_projekat.ui.screens.add.AddTransactionScreen
 import com.example.mobilno_projekat.ui.screens.add.AddTransactionViewModel
+import com.example.mobilno_projekat.ui.screens.auth.login.LoginScreen
+import com.example.mobilno_projekat.ui.screens.auth.login.LoginViewModel
+import com.example.mobilno_projekat.ui.screens.auth.signup.SignUpScreen
+import com.example.mobilno_projekat.ui.screens.auth.signup.SignUpViewModel
 import com.example.mobilno_projekat.ui.screens.budget.BudgetScreen
 import com.example.mobilno_projekat.ui.screens.budget.BudgetViewModel
 import com.example.mobilno_projekat.ui.screens.categories.CategoriesScreen
@@ -28,9 +32,49 @@ fun NavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route,
+        startDestination = Screen.SignUp.route,
         modifier = modifier
     ) {
+        composable(Screen.SignUp.route) {
+            val viewModel: SignUpViewModel = hiltViewModel()
+
+            SignUpScreen(
+                viewModel = viewModel,
+                onSignUpSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.SignUp.route) {
+                            inclusive = true
+                        }
+                    }
+                },
+                onOpenLogin = {
+                    navController.navigate(Screen.Login.route)
+                }
+            )
+        }
+
+        composable(Screen.Login.route) {
+            val viewModel: LoginViewModel = hiltViewModel()
+
+            LoginScreen(
+                viewModel = viewModel,
+                onLoginSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.SignUp.route) {
+                            inclusive = true
+                        }
+                    }
+                },
+                onOpenSignUp = {
+                    navController.navigate(Screen.SignUp.route) {
+                        popUpTo(Screen.Login.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
+
         composable(Screen.Home.route) {
             val viewModel: HomeViewModel = hiltViewModel()
 

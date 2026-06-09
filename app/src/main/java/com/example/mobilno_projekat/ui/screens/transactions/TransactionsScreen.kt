@@ -137,7 +137,8 @@ private fun TransactionsScreenContent(
             ) { transaction ->
                 TransactionItem(
                     transaction = transaction,
-                    onClick = { onTransactionClick(transaction) }
+                    onClick = { onTransactionClick(transaction) },
+                    modifier = Modifier.animateItem()
                 )
             }
         }

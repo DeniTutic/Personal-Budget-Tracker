@@ -67,7 +67,8 @@ fun CategoriesScreen(
                     ) { category ->
                         CategoryItem(
                             category = category,
-                            onClick = { }
+                            onClick = { },
+                            modifier = Modifier.animateItem()
                         )
                     }
                 }
